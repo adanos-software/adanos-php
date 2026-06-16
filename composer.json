@@ -1,0 +1,64 @@
+{
+  "name": "adanos/adanos-php",
+  "description": "PHP SDK for the Adanos Market Sentiment API",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Alexander Schneider"
+    }
+  ],
+  "homepage": "https://adanos.org",
+  "support": {
+    "issues": "https://github.com/adanos-software/adanos-php/issues",
+    "source": "https://github.com/adanos-software/adanos-php"
+  },
+  "keywords": [
+    "adanos",
+    "finance",
+    "sentiment",
+    "stocks",
+    "trading",
+    "reddit",
+    "news",
+    "twitter",
+    "x",
+    "polymarket",
+    "crypto",
+    "sdk",
+    "api"
+  ],
+  "require": {
+    "php": ">=8.2",
+    "guzzlehttp/guzzle": "^7.8"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^1.12",
+    "phpunit/phpunit": "^10.5 || ^11.0",
+    "squizlabs/php_codesniffer": "^3.10"
+  },
+  "autoload": {
+    "psr-4": {
+      "Adanos\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Adanos\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit",
+    "lint": "phpcs --standard=PSR12 src tests",
+    "static-analysis": "phpstan analyse src tests",
+    "check": [
+      "@lint",
+      "@static-analysis",
+      "@test"
+    ]
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "minimum-stability": "stable"
+}
