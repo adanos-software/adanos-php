@@ -2,7 +2,7 @@
 
 PHP SDK for the [Adanos Market Sentiment API](https://api.adanos.org/docs).
 
-Target API version: `1.41.3`.
+Target API version: `1.44.0`.
 
 ## Install
 
