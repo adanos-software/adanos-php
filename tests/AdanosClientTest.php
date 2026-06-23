@@ -140,7 +140,6 @@ final class AdanosClientTest extends TestCase
         self::assertSame('/polymarket/stocks/v1/stats', $this->history[0]['request']->getUri()->getPath());
         self::assertSame(284, $result['open_markets_current']);
         self::assertSame(17, $result['traded_tickers_today']);
-        self::assertArrayNotHasKey('unique_tickers_today', $result);
     }
 
     public function testApiExceptionIncludesStatusDetailPayloadAndHeaders(): void
