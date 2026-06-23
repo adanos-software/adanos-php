@@ -117,6 +117,31 @@ final class AdanosClientTest extends TestCase
         );
     }
 
+    public function testPolymarketStatsUsesApi144Counters(): void
+    {
+        $client = $this->clientWithResponses(new Response(
+            200,
+            [],
+            json_encode([
+                'total_trades' => 15420,
+                'total_markets' => 713,
+                'unique_tickers' => 119,
+                'open_markets_current' => 284,
+                'open_tickers_current' => 71,
+                'traded_markets_today' => 39,
+                'traded_tickers_today' => 17,
+                'trades_today' => 84,
+                'supported_tickers' => 11800,
+            ], JSON_THROW_ON_ERROR)
+        ));
+
+        $result = $client->polymarket->stats();
+
+        self::assertSame('/polymarket/stocks/v1/stats', $this->history[0]['request']->getUri()->getPath());
+        self::assertSame(284, $result['open_markets_current']);
+        self::assertSame(17, $result['traded_tickers_today']);
+    }
+
     public function testApiExceptionIncludesStatusDetailPayloadAndHeaders(): void
     {
         $client = $this->clientWithResponses(new Response(
