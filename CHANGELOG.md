@@ -5,6 +5,12 @@ All notable changes to `adanos/adanos-php`.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [Unreleased]
+
+### Changed
+- Synced PHP SDK test coverage with Adanos Market Sentiment API `1.44.0`.
+- Documented and asserted the Polymarket `/stats` contract using `traded_tickers_today` instead of removed `unique_tickers_today`.
+
 ## [1.0.0] - 2026-06-16
 
 ### Added
