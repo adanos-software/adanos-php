@@ -142,6 +142,57 @@ final class AdanosClientTest extends TestCase
         self::assertSame(17, $result['traded_tickers_today']);
     }
 
+    public function testPolymarketStockExposesApi149PulseAndDailyPercentages(): void
+    {
+        $client = $this->clientWithResponses(new Response(
+            200,
+            [],
+            json_encode([
+                'ticker' => 'AAPL',
+                'found' => true,
+                'unique_traders' => null,
+                'daily_trend' => [[
+                    'date' => '2026-08-08',
+                    'trade_count' => 5,
+                    'bullish_pct' => 64,
+                    'bearish_pct' => 21,
+                ]],
+                'pulse' => [
+                    'mood' => 'mixed',
+                    'confidence' => 60.0,
+                    'thin_data' => false,
+                    'why' => ['opposing_market_signals'],
+                    'warnings' => ['high_average_spread'],
+                    'evidence' => ['directional_coverage' => 1.0],
+                ],
+            ], JSON_THROW_ON_ERROR)
+        ));
+
+        $result = $client->polymarket->stock('AAPL');
+
+        self::assertSame('mixed', $result['pulse']['mood']);
+        self::assertSame(64, $result['daily_trend'][0]['bullish_pct']);
+        self::assertNull($result['unique_traders']);
+    }
+
+    public function testCompareLimitErrorUsesStructuredApi149Message(): void
+    {
+        $client = $this->clientWithResponses(new Response(
+            400,
+            [],
+            '{"detail":{"error":"too_many_tickers","message":"Too many tickers.","max_items":10,"item_name":"ticker"}}'
+        ));
+
+        try {
+            $client->reddit->compare(array_fill(0, 11, 'AAPL'));
+            self::fail('Expected ApiException.');
+        } catch (ApiException $exception) {
+            self::assertSame(400, $exception->getStatusCode());
+            self::assertSame('Too many tickers.', $exception->getDetail());
+            self::assertSame(10, $exception->getPayload()['detail']['max_items']);
+        }
+    }
+
     public function testApiExceptionIncludesStatusDetailPayloadAndHeaders(): void
     {
         $client = $this->clientWithResponses(new Response(

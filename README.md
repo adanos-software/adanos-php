@@ -90,6 +90,10 @@ $comparison = $client->polymarket->compare(['AAPL', 'TSLA']);
 $market = $client->polymarket->marketSentiment();
 ```
 
+Polymarket stock responses can include a `pulse` block with a compact current interpretation and data-quality evidence. `unique_traders` can be `null` when retained wallet-level trades do not fully cover the requested window. Daily trend items expose `bullish_pct` and `bearish_pct`.
+
+Across platforms, every `trend_history` value represents its own UTC calendar day. The final value for a live window describes the current partial UTC day and is not expected to equal the top-level period `buzz_score`.
+
 ### Reddit Crypto
 
 ```php

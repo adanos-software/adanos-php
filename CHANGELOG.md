@@ -5,6 +5,12 @@ All notable changes to `adanos/adanos-php`.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [Unreleased]
+
+### Changed
+- Synced response and error-contract coverage with Adanos Market Sentiment API `1.49.0`.
+- Documented Polymarket ticker `pulse`, daily bullish/bearish percentages, nullable `unique_traders`, and stable UTC-day `trend_history` semantics.
+
 ## [1.1.0] - 2026-06-23
 
 ### Changed
