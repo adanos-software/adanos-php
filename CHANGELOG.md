@@ -5,7 +5,7 @@ All notable changes to `adanos/adanos-php`.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
-## [Unreleased]
+## [1.2.0] - 2026-08-09
 
 ### Changed
 - Synced response and error-contract coverage with Adanos Market Sentiment API `1.49.0`.
