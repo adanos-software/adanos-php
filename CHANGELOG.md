@@ -7,6 +7,8 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-13
+
 ### Added
 - Optional company `target` for direct sentiment analysis.
 
