@@ -5,6 +5,16 @@ All notable changes to `adanos/adanos-php`.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [Unreleased]
+
+### Added
+- Optional company `target` for direct sentiment analysis.
+
+### Changed
+- Synced SDK coverage and documentation with Adanos Market Sentiment API `1.54.0`.
+- Defaulted API requests to `api.adanos.com`; explicit legacy and custom hosts remain supported.
+- Documented nullable raw model scores, exchange-qualified News tickers, and signed raw Crypto mention upvotes.
+
 ## [1.2.0] - 2026-08-09
 
 ### Changed

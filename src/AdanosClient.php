@@ -27,7 +27,7 @@ class AdanosClient
 
     public function __construct(
         string $apiKey,
-        string $baseUrl = 'https://api.adanos.org',
+        string $baseUrl = 'https://api.adanos.com',
         float $timeout = 30.0,
         ?ClientInterface $httpClient = null
     ) {

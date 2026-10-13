@@ -6,6 +6,7 @@ namespace Adanos\Tests;
 
 use Adanos\AdanosClient;
 use Adanos\Exception\ApiException;
+use Adanos\Http\HttpClient;
 use Adanos\StockSentimentClient;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
@@ -101,11 +102,16 @@ final class AdanosClientTest extends TestCase
 
     public function testSentimentAnalyzePostsJsonBody(): void
     {
-        $client = $this->clientWithResponses(new Response(200, [], '{"sentiment_label":"positive"}'));
+        $client = $this->clientWithResponses(new Response(
+            200,
+            [],
+            '{"sentiment_label":"positive","components":{"engine_version":"5.5","model_score":null}}'
+        ));
 
         $result = $client->sentiment->analyze('TSLA looks like a short squeeze setup');
 
         self::assertSame('positive', $result['sentiment_label']);
+        self::assertNull($result['components']['model_score']);
 
         $request = $this->history[0]['request'];
         self::assertSame('POST', $request->getMethod());
@@ -115,6 +121,84 @@ final class AdanosClientTest extends TestCase
             ['text' => 'TSLA looks like a short squeeze setup'],
             json_decode((string) $request->getBody(), true)
         );
+    }
+
+    public function testSentimentAnalyzePostsTargetAndPreservesModelScore(): void
+    {
+        $client = $this->clientWithResponses(new Response(
+            200,
+            [],
+            '{"sentiment_label":"negative","components":{"engine_version":"5.5","model_score":-0.8}}'
+        ));
+
+        $result = $client->sentiment->analyze('Goldman Sachs cuts Apple price target', target: 'Apple');
+
+        self::assertSame('negative', $result['sentiment_label']);
+        self::assertSame(-0.8, $result['components']['model_score']);
+        self::assertSame(
+            ['text' => 'Goldman Sachs cuts Apple price target', 'target' => 'Apple'],
+            json_decode((string) $this->history[0]['request']->getBody(), true)
+        );
+    }
+
+    public function testDefaultAndExplicitBaseUrls(): void
+    {
+        foreach ([null, 'https://api.adanos.org/', 'https://proxy.example.test/'] as $baseUrl) {
+            $stack = HandlerStack::create(new MockHandler([new Response(200, [], '{"status":"ok"}')]));
+            $stack->push(Middleware::history($this->history));
+            $http = new Client(['handler' => $stack]);
+            $client = $baseUrl === null
+                ? new AdanosClient(apiKey: 'sdk_test_key', httpClient: $http)
+                : new AdanosClient(apiKey: 'sdk_test_key', baseUrl: $baseUrl, httpClient: $http);
+
+            self::assertSame(['status' => 'ok'], $client->health());
+            self::assertSame(
+                ($baseUrl === null ? 'https://api.adanos.com' : rtrim($baseUrl, '/')) . '/health',
+                (string) $this->history[array_key_last($this->history)]['request']->getUri()
+            );
+        }
+
+        $stack = HandlerStack::create(new MockHandler([new Response(200, [], '{}')]));
+        $stack->push(Middleware::history($this->history));
+        $http = new HttpClient(apiKey: 'sdk_test_key', client: new Client(['handler' => $stack]));
+        $http->get('/health');
+        self::assertSame('https://api.adanos.com/health', (string) $this->history[3]['request']->getUri());
+    }
+
+    public function testNewsAcceptsExchangeQualifiedTickers(): void
+    {
+        $client = $this->clientWithResponses(
+            new Response(200, [], '{"ticker":"VOD.L"}'),
+            new Response(200, [], '{"results":[]}'),
+            new Response(200, [], '{"ticker":"VOD.L"}'),
+            new Response(200, [], '{"stocks":[]}')
+        );
+
+        self::assertSame('VOD.L', $client->news->stock('VOD.L')['ticker']);
+        $client->news->mentions('VOD.L', ['limit' => 1]);
+        $client->news->explain('VOD.L');
+        $client->news->compare(['VOD.L', 'AAPL']);
+
+        self::assertSame('/news/stocks/v1/stock/VOD.L', $this->history[0]['request']->getUri()->getPath());
+        self::assertSame('/news/stocks/v1/stock/VOD.L/mentions', $this->history[1]['request']->getUri()->getPath());
+        self::assertSame('/news/stocks/v1/stock/VOD.L/explain', $this->history[2]['request']->getUri()->getPath());
+        parse_str($this->history[3]['request']->getUri()->getQuery(), $query);
+        self::assertSame('VOD.L,AAPL', $query['tickers']);
+    }
+
+    public function testCryptoMentionsPreservesSignedScoresAndUtcTimestamps(): void
+    {
+        $client = $this->clientWithResponses(new Response(
+            200,
+            [],
+            '{"results":[{"upvotes":-3,"created_utc":"2026-10-13T10:00:00Z","sentiment_score":null}]}'
+        ));
+
+        $result = $client->crypto->mentions('BTC', ['limit' => 1]);
+
+        self::assertSame(-3, $result['results'][0]['upvotes']);
+        self::assertSame('2026-10-13T10:00:00Z', $result['results'][0]['created_utc']);
+        self::assertNull($result['results'][0]['sentiment_score']);
     }
 
     public function testPolymarketStatsUsesApi144Counters(): void
