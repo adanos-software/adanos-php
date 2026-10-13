@@ -18,8 +18,14 @@ final class SentimentNamespace extends PlatformNamespace
      *
      * @return array<string, mixed>|list<mixed>
      */
-    public function analyze(string $text): array
+    public function analyze(string $text, ?string $target = null): array
     {
-        return $this->post('/analyze', ['text' => $text]);
+        $body = ['text' => $text];
+
+        if ($target !== null) {
+            $body['target'] = $target;
+        }
+
+        return $this->post('/analyze', $body);
     }
 }

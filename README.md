@@ -1,8 +1,8 @@
 # adanos/adanos-php
 
-PHP SDK for the [Adanos Market Sentiment API](https://api.adanos.org/docs).
+PHP SDK for the [Adanos Market Sentiment API](https://api.adanos.com/docs).
 
-Target API version: `1.49.0`.
+Target API version: `1.54.0`.
 
 ## Install
 
@@ -68,7 +68,11 @@ $explanation = $client->news->explain('NVDA');
 $results = $client->news->search('Nvidia', ['limit' => 10]);
 $comparison = $client->news->compare(['NVDA', 'AAPL']);
 $market = $client->news->marketSentiment();
+$vod = $client->news->stock('VOD.L');
 ```
+
+News accepts exchange-qualified tickers such as `VOD.L`. Use the ticker returned
+by search or trending when calling stock, mentions, explain, or compare.
 
 ### X/Twitter
 
@@ -110,16 +114,28 @@ $comparison = $client->crypto->compare(['BTC', 'ETH']);
 $market = $client->crypto->marketSentiment();
 ```
 
+Raw Crypto mention `upvotes` can be negative. Mention timestamps remain ISO 8601
+UTC strings in the returned arrays.
+
 ### Direct Finance Sentiment
 
 `/sentiment/v1/analyze` requires a Professional account.
 
 ```php
 $analysis = $client->sentiment->analyze('TSLA looks like a short squeeze setup');
+$apple = $client->sentiment->analyze('Goldman Sachs cuts Apple price target', target: 'Apple');
 
 echo $analysis['sentiment_label'] . PHP_EOL;
 echo $analysis['sentiment_score'] . PHP_EOL;
 ```
+
+The optional `target` selects the company to judge, by name or ticker. A company
+name that appears in the text works best. Calls without a target still send only
+`text`.
+
+Responses are decoded arrays. `components.model_score` is a raw model score or
+`null`; `sentiment_score` is the calibrated score. Engine 5.5 deprecates the older
+VADER, RoBERTa, emoji, and phrase component fields but keeps them for compatibility.
 
 ## Period Options
 
@@ -141,10 +157,14 @@ $client->reddit->trending([
 ```php
 $client = new AdanosClient(
     apiKey: 'sk_live_...',
-    baseUrl: 'https://api.adanos.org',
+    baseUrl: 'https://api.adanos.com',
     timeout: 60.0,
 );
 ```
+
+The default API host is `https://api.adanos.com`. Explicit custom URLs and the
+fully supported legacy host `https://api.adanos.org` remain available through
+`baseUrl`.
 
 ## Errors
 
