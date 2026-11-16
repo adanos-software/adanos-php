@@ -2,7 +2,7 @@
 
 PHP SDK for the [Adanos Market Sentiment API](https://api.adanos.com/docs).
 
-Target API version: `1.54.0`.
+Target API version: `1.55.0`.
 
 ## Install
 
@@ -93,6 +93,15 @@ $results = $client->polymarket->search('Apple', ['limit' => 10]);
 $comparison = $client->polymarket->compare(['AAPL', 'TSLA']);
 $market = $client->polymarket->marketSentiment();
 ```
+
+Polymarket uses Instrument Graph keys: one company key for its stocks, ADRs and share
+classes, and separate keys for ETFs. Documented venue suffixes such as `SAP.DE` are valid.
+Use `BRK`, not `BRK.B` or `BRK-B`; `BK` is now `BNY` and `DAX` is now `EWG`.
+Use `search()` to find the current key. Stock and mentions return `404` for keys absent
+from the Graph, `422` for invalid spelling (including cashtags and share classes), and
+`503` when the Graph is unavailable. Compare sends keys unchanged and preserves
+zero-activity rows without a company name for unknown keys. Unavailable `buzz_score`
+and raw `strike_price` values can be `null`; check before arithmetic.
 
 Polymarket stock responses can include a `pulse` block with a compact current interpretation and data-quality evidence. `unique_traders` can be `null` when retained wallet-level trades do not fully cover the requested window. Daily trend items expose `bullish_pct` and `bearish_pct`.
 
