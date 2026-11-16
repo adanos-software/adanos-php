@@ -7,6 +7,10 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Document API `1.55.0` Polymarket Instrument Graph keys, ticker migration, and lookup errors.
+- Verify exchange-qualified Graph keys, nullable metrics, and 404/422/503 responses in client tests.
+
 ## [1.3.0] - 2026-10-13
 
 ### Added

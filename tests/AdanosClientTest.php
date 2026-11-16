@@ -226,6 +226,65 @@ final class AdanosClientTest extends TestCase
         self::assertSame(17, $result['traded_tickers_today']);
     }
 
+    public function testPolymarketGraphKeysAndNullableMetrics(): void
+    {
+        $client = $this->clientWithResponses(
+            new Response(200, [], '{"query":"BK","results":[{"ticker":"BNY"}]}'),
+            new Response(200, [], '{"ticker":"SAP.DE","buzz_score":null}'),
+            new Response(200, [], '{"results":[{"strike_price":null},{"strike_price":0}]}'),
+            new Response(
+                200,
+                [],
+                '{"stocks":[{"ticker":"BNY","buzz_score":0},{"ticker":"UNKNOWN","buzz_score":null}]}'
+            )
+        );
+
+        self::assertSame('BNY', $client->polymarket->search('BK')['results'][0]['ticker']);
+        $stock = $client->polymarket->stock('SAP.DE');
+        self::assertSame('SAP.DE', $stock['ticker']);
+        self::assertNull($stock['buzz_score']);
+        $mentions = $client->polymarket->mentions('SAP.DE');
+        self::assertNull($mentions['results'][0]['strike_price']);
+        self::assertSame(0, $mentions['results'][1]['strike_price']);
+        $comparison = $client->polymarket->compare(['BNY', 'SAP.DE', 'EWG', 'UNKNOWN']);
+        self::assertSame(0, $comparison['stocks'][0]['buzz_score']);
+        self::assertNull($comparison['stocks'][1]['buzz_score']);
+        self::assertArrayNotHasKey('company_name', $comparison['stocks'][1]);
+        self::assertSame('/polymarket/stocks/v1/stock/SAP.DE', $this->history[1]['request']->getUri()->getPath());
+        self::assertSame(
+            '/polymarket/stocks/v1/stock/SAP.DE/mentions',
+            $this->history[2]['request']->getUri()->getPath()
+        );
+        parse_str($this->history[3]['request']->getUri()->getQuery(), $query);
+        self::assertSame('BNY,SAP.DE,EWG,UNKNOWN', $query['tickers']);
+    }
+
+    public function testPolymarketGraphErrorsPreserveStatusAndTicker(): void
+    {
+        foreach ([['BK', 404], ['BRK.B', 422], ['BRK-B', 422], ['$AAPL', 422], ['BRK', 503]] as [$ticker, $status]) {
+            $client = $this->clientWithResponses(new Response(
+                $status,
+                ['X-Request-ID' => 'graph-error'],
+                '{"detail":"Graph lookup failed"}'
+            ));
+
+            try {
+                $client->polymarket->mentions($ticker);
+                self::fail('Expected ApiException.');
+            } catch (ApiException $exception) {
+                self::assertSame($status, $exception->getStatusCode());
+                self::assertSame('Graph lookup failed', $exception->getDetail());
+                self::assertSame(['graph-error'], $exception->getHeaders()['X-Request-ID']);
+            }
+
+            $request = $this->history[array_key_last($this->history)]['request'];
+            self::assertSame(
+                '/polymarket/stocks/v1/stock/' . rawurlencode($ticker) . '/mentions',
+                $request->getUri()->getPath()
+            );
+        }
+    }
+
     public function testPolymarketStockExposesApi149PulseAndDailyPercentages(): void
     {
         $client = $this->clientWithResponses(new Response(
